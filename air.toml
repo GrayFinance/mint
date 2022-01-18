@@ -1,0 +1,19 @@
+root = "."
+
+[build]
+    bin = "./build/mint-dev"
+    cmd = "make build-dev"
+    log = "build-errors.log"
+    stop_on_error = true
+
+[color]
+   build = "yellow"
+   main = "magenta"
+   runner = "green"
+   watcher = "cyan"
+
+[log]
+   time = false
+
+[misc]
+    clean_on_exit = false
