@@ -4,13 +4,17 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	UserID   string `gorm:"not null;unique" json:"user_id"`
-	Username string `gorm:"not null;unique" json:"username"`
-	Password string `gorm:"not null" json:"password"`
+
+	UserTag      string `gorm:"not null;unique" json:"user_tag"`
+	UserID       string `gorm:"not null;unique" json:"user_id"`
+	Username     string `gorm:"not null;unique" json:"username"`
+	Password     string `gorm:"not null" json:"password"`
+	MasterAPIKey string `gorm:"not null;unique" json:"master_api_key"`
 }
 
 type Wallet struct {
 	gorm.Model
+
 	UserID           string `gorm:"index;not null" json:"user_id"`
 	Label            string `gorm:"not null" json:"label"`
 	Balance          int64  `gorm:"default 0" json:"balance"`
@@ -22,20 +26,34 @@ type Wallet struct {
 
 type Address struct {
 	gorm.Model
+
+	Address  string `gorm:"not null" json:"address"`
+	Network  string `gorm:"not null;default bitcoin" json:"network"`
+	UserID   string `gorm:"not null" json:"user_id"`
 	WalletID string `gorm:"not null" json:"wallet_id"`
-	Bitcoin  string `gorm:"not null;unique" json:"bitcoin"`
+}
+
+type Balance struct {
+	gorm.Model
+
+	UserID  string `gorm:"index;not null;unique" json:"user_id"`
+	Bitcoin int64  `gorm:"not null;default 0" json:"bitcoin"`
 }
 
 type Payment struct {
 	gorm.Model
+
 	Pending     bool   `gorm:"not null;default true" json:"pending"`
-	Amount      int64  `gorm:"not null" json:"amount"`
+	AssetID     string `gorm:"not null" json:"asset_id"`
+	AssetName   string `gorm:"not null;default bitcoin" json:"asset_name"`
+	Value       int64  `gorm:"not null" json:"value"`
 	Fee         int64  `gorm:"not null;default 0" json:"fee"`
 	Description string `json:"description"`
+	HashID      string `gorm:"not null;unique" json:"hash"`
 	Preimage    string `json:"preimage"`
-	Hash        string `gorm:"not null;unique" json:"hash"`
-	Tag         string `json:"tag"`
-	Bolt11      string `json:"bolt11"`
-	Category    string `gorm:"not null" json:"Category"`
-	Network     string `json:"network"`
+	Invoice     string `json:"invoice"`
+	Category    string `gorm:"not null" json:"category"`
+	Network     string `gorm:"not null" json:"network"`
+	UserID      string `gorm:"index;not null" json:"user_id"`
+	WalletID    string `gorm:"index;not null" json:"wallet_id"`
 }

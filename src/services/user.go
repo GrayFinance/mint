@@ -7,6 +7,7 @@ import (
 	"github.com/GrayFinance/mint/src/config"
 	"github.com/GrayFinance/mint/src/models"
 	"github.com/GrayFinance/mint/src/storage"
+	"github.com/GrayFinance/mint/src/utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -30,10 +31,12 @@ func (u *User) CreateUser() (models.User, error) {
 	}
 
 	user := models.User{
-		UserID:   uuid.New().String(),
-		Username: u.Username,
-		Password: string(password),
+		UserID:       uuid.New().String(),
+		Username:     u.Username,
+		Password:     string(password),
+		MasterAPIKey: utils.RandomHex(16),
 	}
+
 	if storage.DB.Create(&user).Error != nil {
 		err := fmt.Errorf("User already exists.")
 		return models.User{}, err
@@ -41,38 +44,41 @@ func (u *User) CreateUser() (models.User, error) {
 	return user, nil
 }
 
-func (u *User) GetUser() (models.User, error) {
+func (u *User) GetUser() (interface{}, error) {
 	var user models.User
 
 	if storage.DB.Where("user_id = ?", u.UserID).First(&user).Error != nil {
 		err := fmt.Errorf("User does not exist.")
 		return models.User{}, err
 	}
-	return user, nil
+
+	var balance int64
+
+	storage.DB.Raw(`
+	SELECT SUM(balance) 
+	FROM wallets 
+	WHERE user_id = ?
+	`, u.UserID).Scan(&balance)
+	return map[string]interface{}{"balance": balance, "master_api_key": user.MasterAPIKey, "user_id": user.UserID}, nil
 }
 
-func (u *User) AuthUser() (map[string]string, error) {
+func (u *User) AuthUser() (string, error) {
 	var user models.User
 
 	if storage.DB.Model(user).Where("username = ?", u.Username).First(&user).Error != nil {
 		err := fmt.Errorf("Username / Password invalid.")
-		return nil, err
+		return "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.Password)); err != nil {
 		err = fmt.Errorf("Username / Password invalid.")
-		return nil, err
+		return "", err
 	}
 
-	t := jwt.New(jwt.SigningMethodHS256)
-	c := t.Claims.(jwt.MapClaims)
+	token := jwt.New(jwt.SigningMethodHS256)
+	claim := token.Claims.(jwt.MapClaims)
 
-	c["uid"] = user.UserID
-	c["iat"] = time.Now().Add(time.Minute * (60 * 24)).Unix()
-
-	token, err := t.SignedString([]byte(config.Config.SIGN_KEY))
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{"uid": user.UserID, "token": token}, nil
+	claim["user_id"] = user.UserID
+	claim["exp"] = time.Now().Add(time.Minute * (60 * 24)).Unix()
+	return token.SignedString([]byte(config.Config.SIGN_KEY))
 }

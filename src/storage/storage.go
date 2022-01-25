@@ -27,11 +27,13 @@ func Connect(uri string) error {
 		return err
 	}
 
-	if err := DB.AutoMigrate(
+	err = DB.AutoMigrate(
 		&models.User{},
 		&models.Wallet{},
 		&models.Payment{},
-	); err != nil {
+		&models.Address{},
+	)
+	if err != nil {
 		return err
 	}
 	return nil
