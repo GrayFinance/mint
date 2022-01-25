@@ -1,17 +1,24 @@
 package config
 
-import (
-	"github.com/kelseyhightower/envconfig"
-)
+import "github.com/kelseyhightower/envconfig"
 
 // Loads the variables of environments specified
 // in the .env file of the current directory.
 var Config struct {
-	DB_URI         string `envconfig:"DB_URI"`
-	PASS_SALT      string `envconfig:"PASS_SALT"`
-	SIGN_KEY       string `envconfig:"SIGN_KEY"`
-	ADMIN_USERNAME string `envconfig:"ADMIN_USERNAME"`
-	ADMIN_PASSWORD string `envconfig:"ADMIN_PASSWORD"`
+	API_HOST string `envconfig:"API_HOST"`
+	API_PORT string `envconfig:"API_PORT"`
+
+	DATABASE string `envconfig:"DATABASE"`
+	SIGN_KEY string `envconfig:"SIGN_KEY"`
+
+	BTC_HOST        string `envconfig:"BTC_HOST"`
+	BTC_USER        string `envconfig:"BTC_USER"`
+	BTC_PASS        string `envconfig:"BTC_PASS"`
+	BTC_ZMQ_HASH_TX string `envconfig:"BTC_ZMQ_HASH_TX"`
+
+	LND_HOST     string `envconfig:"LND_HOST"`
+	LND_MACAROON string `envconfig:"LND_MACAROON"`
+	LND_TLS_CERT string `envconfig:"LND_TLS_CERT"`
 }
 
 func Loads() error {
