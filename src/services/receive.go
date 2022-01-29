@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/GrayFinance/mint/src/bitcoin"
+	"github.com/GrayFinance/mint/src/lightning"
 	"github.com/GrayFinance/mint/src/models"
 	"github.com/GrayFinance/mint/src/storage"
 )
@@ -42,4 +43,35 @@ func (r *Receive) GetAddress(network string) (models.Address, error) {
 		return address, err
 	}
 	return address, nil
+}
+
+func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) {
+	invoice, err := lightning.Lightning.CreateInvoice(value, memo)
+	if err != nil {
+		return models.Payment{}, nil
+	}
+
+	decode_invoice, err := lightning.Lightning.DecodeInvoice(invoice.Get("payment_request").String())
+	if err != nil {
+		return models.Payment{}, nil
+	}
+
+	payment := models.Payment{
+		Pending:     true,
+		AssetID:     "bitcoin",
+		AssetName:   "bitcoin",
+		Value:       int64(value),
+		Description: memo,
+		HashID:      decode_invoice.Get("payment_hash").String(),
+		Invoice:     invoice.Get("payment_request").String(),
+		Category:    "deposit",
+		Network:     "lightning",
+		UserID:      r.UserID,
+		WalletID:    r.WalletID,
+	}
+	if storage.DB.Create(&payment).Error != nil {
+		err := fmt.Errorf("It was not possible to generate invoice.")
+		return models.Payment{}, err
+	}
+	return payment, nil
 }
