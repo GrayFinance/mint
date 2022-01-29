@@ -21,7 +21,7 @@ type User struct {
 
 func (u *User) CreateUser() (models.User, error) {
 	if len(u.Username) < 6 || len(u.Password) < 6 {
-		err := fmt.Errorf("Username / Password invalid.")
+		err := fmt.Errorf("Username and password must have a size of 6 character.")
 		return models.User{}, err
 	}
 
@@ -63,8 +63,12 @@ func (u *User) GetUser() (interface{}, error) {
 }
 
 func (u *User) AuthUser() (string, error) {
-	var user models.User
+	if len(u.Username) < 6 || len(u.Password) < 6 {
+		err := fmt.Errorf("Username and password must have a size of 6 character.")
+		return "", err
+	}
 
+	var user models.User
 	if storage.DB.Model(user).Where("username = ?", u.Username).First(&user).Error != nil {
 		err := fmt.Errorf("Username / Password invalid.")
 		return "", err
