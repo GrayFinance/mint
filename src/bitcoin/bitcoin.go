@@ -30,7 +30,8 @@ func Start() {
 	sub.Connect(config.Config.BTC_ZMQ_HASH_TX)
 	sub.SetSubscribe("hashtx")
 
-	log.Println(config.Config.BTC_ZMQ_HASH_TX)
+	log.Println("Bitcoin Connect RPC: ", config.Config.BTC_HOST)
+	log.Println("Bitcoin Connect ZMQ: ", config.Config.BTC_ZMQ_HASH_TX)
 
 	for {
 		data, err := sub.RecvMessageBytes(0)
