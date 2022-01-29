@@ -5,7 +5,6 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model
 
-	UserTag      string `gorm:"not null;unique" json:"user_tag"`
 	UserID       string `gorm:"not null;unique" json:"user_id"`
 	Username     string `gorm:"not null;unique" json:"username"`
 	Password     string `gorm:"not null" json:"password"`
@@ -15,13 +14,12 @@ type User struct {
 type Wallet struct {
 	gorm.Model
 
-	UserID           string `gorm:"index;not null" json:"user_id"`
-	Label            string `gorm:"not null" json:"label"`
-	Balance          int64  `gorm:"default 0" json:"balance"`
-	WalletID         string `gorm:"not null" json:"wallet_id"`
-	WalletReadKey    string `gorm:"not null" json:"wallet_read_key"`
-	WalletAdminKey   string `gorm:"not null" json:"wallet_admin_key"`
-	WalletInvoiceKey string `gorm:"not null" json:"wallet_invoice_key"`
+	UserID         string `gorm:"index;not null" json:"user_id"`
+	Label          string `gorm:"not null" json:"label"`
+	Balance        int64  `gorm:"default 0" json:"balance"`
+	WalletID       string `gorm:"not null" json:"wallet_id"`
+	WalletReadKey  string `gorm:"not null" json:"wallet_read_key"`
+	WalletAdminKey string `gorm:"not null" json:"wallet_admin_key"`
 }
 
 type Address struct {
@@ -33,13 +31,6 @@ type Address struct {
 	WalletID string `gorm:"not null" json:"wallet_id"`
 }
 
-type Balance struct {
-	gorm.Model
-
-	UserID  string `gorm:"index;not null;unique" json:"user_id"`
-	Bitcoin int64  `gorm:"not null;default 0" json:"bitcoin"`
-}
-
 type Payment struct {
 	gorm.Model
 
@@ -49,7 +40,7 @@ type Payment struct {
 	Value       int64  `gorm:"not null" json:"value"`
 	Fee         int64  `gorm:"not null;default 0" json:"fee"`
 	Description string `json:"description"`
-	HashID      string `gorm:"not null;unique" json:"hash"`
+	HashID      string `gorm:"not null;unique" json:"hash_id"`
 	Preimage    string `json:"preimage"`
 	Invoice     string `json:"invoice"`
 	Category    string `gorm:"not null" json:"category"`
