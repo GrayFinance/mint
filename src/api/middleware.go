@@ -75,10 +75,6 @@ func WalletMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			permission = "read"
 		}
 
-		if wallet.WalletInvoiceKey == password {
-			permission = "invoice"
-		}
-
 		if permission != "" {
 			context.Set(r, "user_id", wallet.UserID)
 			context.Set(r, "permission", permission)
