@@ -6,6 +6,7 @@ import (
 	"github.com/GrayFinance/mint/src/api"
 	"github.com/GrayFinance/mint/src/bitcoin"
 	"github.com/GrayFinance/mint/src/config"
+	"github.com/GrayFinance/mint/src/lightning"
 	"github.com/GrayFinance/mint/src/storage"
 )
 
@@ -21,5 +22,7 @@ func init() {
 
 func main() {
 	go bitcoin.Start()
+	go lightning.Start()
+
 	api.Start()
 }
