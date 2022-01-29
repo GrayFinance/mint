@@ -1,6 +1,10 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/GrayFinance/go-bitcoin v0.0.0-20220111182946-3a6626c53289 h1:KVPJs/UvkdrkjiJK+DlOmkZK0pjWU1zQ/WZBhPb8s5w=
 github.com/GrayFinance/go-bitcoin v0.0.0-20220111182946-3a6626c53289/go.mod h1:3GHMWXcgG2BYcGN0rtYK391QTkxHg561bl8xRxBni+8=
+github.com/GrayFinance/go-lnd v0.0.0-20220116225806-8afbf9ce138f h1:kEmjaEvvfnF7yNwkSs1Arwb1z1cVR9HxzYVEOW/vML0=
+github.com/GrayFinance/go-lnd v0.0.0-20220116225806-8afbf9ce138f/go.mod h1:YAwbW1hfTswWGbdPLTxNm6orDiDRG/ytoVN5UYSWpR0=
+github.com/GrayFinance/go-lnd v0.0.0-20220126191245-9e6d021f650f h1:3eqpQVnfNL8K49gXeLT8c/XYEE6mNgeKencegiq/KdA=
+github.com/GrayFinance/go-lnd v0.0.0-20220126191245-9e6d021f650f/go.mod h1:GbA97pFL9lDmRomb2w1JsU1t42S1n/nvdXqS9wVhqXY=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
@@ -117,6 +121,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tidwall/gjson v1.12.1 h1:ikuZsLdhr8Ws0IdROXUS1Gi4v9Z4pGqpX/CvJkxvfpo=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
+github.com/tidwall/gjson v1.13.0 h1:3TFY9yxOQShrvmjdM76K+jc66zJeT6D3/VFFYCGQf7M=
+github.com/tidwall/gjson v1.13.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
 github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.0 h1:RWIZEg2iJ8/g6fDDYzMpobmaoGh5OLl4AXtGUGPcqCs=
