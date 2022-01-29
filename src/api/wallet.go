@@ -40,10 +40,14 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		UserID: context.Get(r, "user_id").(string),
 	}
 
-	if _, err := wallet.DeleteWallet(mux.Vars(r)["wallet_id"]); err != nil {
+	delete_wallet, err := wallet.DeleteWallet(mux.Vars(r)["wallet_id"])
+	if err != nil {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
+
+	utils.SendJSONResponse(w, map[string]string{"wallet_id": delete_wallet.WalletID})
+	return
 }
 
 func RenameWallet(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +58,6 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data map[string]string
-
 	if err := json.Unmarshal(body, &data); err != nil {
 		utils.SendJSONError(w, 500, err.Error())
 		return
@@ -68,10 +71,15 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 	wallet := services.Wallet{
 		UserID: context.Get(r, "user_id").(string),
 	}
-	if _, err := wallet.RenameWallet(mux.Vars(r)["wallet_id"], data["label"]); err != nil {
+
+	rename_wallet, err := wallet.RenameWallet(mux.Vars(r)["wallet_id"], data["label"])
+	if err != nil {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
+
+	utils.SendJSONResponse(w, map[string]string{"wallet_id": rename_wallet.WalletID, "label": data["label"]})
+	return
 }
 
 func ListWallets(w http.ResponseWriter, r *http.Request) {
