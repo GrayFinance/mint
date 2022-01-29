@@ -20,10 +20,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user services.User
 	json.Unmarshal(body, &user)
 
-	if _, err := user.CreateUser(); err != nil {
+	data, err := user.CreateUser()
+	if err != nil {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
+	utils.SendJSONResponse(w, map[string]string{"user_id": data.UserID})
+	return
 }
 
 func AuthUser(w http.ResponseWriter, r *http.Request) {
