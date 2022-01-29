@@ -14,12 +14,11 @@ type Wallet struct {
 
 func (w *Wallet) CreateWallet(label string) (models.Wallet, error) {
 	wallet := models.Wallet{
-		Label:            label,
-		UserID:           w.UserID,
-		WalletID:         utils.RandomHex(16),
-		WalletReadKey:    utils.RandomHex(16),
-		WalletAdminKey:   utils.RandomHex(16),
-		WalletInvoiceKey: utils.RandomHex(16),
+		Label:          label,
+		UserID:         w.UserID,
+		WalletID:       utils.RandomHex(16),
+		WalletReadKey:  utils.RandomHex(16),
+		WalletAdminKey: utils.RandomHex(16),
 	}
 
 	if storage.DB.Create(&wallet).Error != nil {
