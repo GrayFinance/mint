@@ -12,33 +12,49 @@ import (
 )
 
 func Receive(w http.ResponseWriter, r *http.Request) {
-	receive := services.Receive{
-		UserID:   context.Get(r, "user_id").(string),
-		WalletID: mux.Vars(r)["wallet_id"],
-	}
-
-	network, _ := r.URL.Query()["network"]
-	if network[0] != "lightning" {
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			utils.SendJSONError(w, 500, err.Error())
-			return
+	permission := context.Get(r, "permission").(string)
+	if permission == "admin" || permission == "read" {
+		receive := services.Receive{
+			UserID:   context.Get(r, "user_id").(string),
+			WalletID: mux.Vars(r)["wallet_id"],
 		}
 
-		var params map[string]interface{}
-		json.Unmarshal(body, &params)
-	}
+		network, _ := r.URL.Query()["network"]
+		if network[0] == "lightning" {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				utils.SendJSONError(w, 500, err.Error())
+				return
+			}
 
-	address, err := receive.GetAddress(network[0])
-	if err != nil {
-		address, err = receive.GenerateAddress(network[0])
-	}
+			type params struct {
+				Value int    `json:"value"`
+				Memo  string `json:"memo"`
+			}
+			var data params
+			json.Unmarshal(body, &data)
 
-	if err != nil {
-		utils.SendJSONError(w, 500, err.Error())
-		return
-	}
+			invoice, err := receive.CreateInvoice(data.Value, data.Memo)
+			if err != nil {
+				utils.SendJSONError(w, 500, err.Error())
+				return
+			}
 
-	utils.SendJSONResponse(w, map[string]string{"address": address.Address})
-	return
+			utils.SendJSONResponse(w, map[string]string{"payment_request": invoice.Invoice})
+			return
+		} else {
+			address, err := receive.GetAddress(network[0])
+			if err != nil {
+				address, err = receive.GenerateAddress(network[0])
+			}
+
+			if err != nil {
+				utils.SendJSONError(w, 500, err.Error())
+				return
+			}
+
+			utils.SendJSONResponse(w, map[string]string{"address": address.Address})
+			return
+		}
+	}
 }
