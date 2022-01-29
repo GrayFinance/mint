@@ -33,7 +33,8 @@ func Start() {
 		Handler:      router,
 	}
 
-	log.Println(server.Addr)
+	log.Println("Server Listen API: ", server.Addr)
+
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
