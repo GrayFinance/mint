@@ -13,17 +13,18 @@ func Start() {
 	router := mux.NewRouter().PathPrefix("/api").Subrouter()
 	router.Path("/user").HandlerFunc(IsAuthorized(GetUser)).Methods("GET")
 	router.Path("/wallets").HandlerFunc(IsAuthorized(ListWallets)).Methods("GET")
+	router.Path("/wallet/create").HandlerFunc(IsAuthorized(CreateWallet)).Methods("POST")
 	router.Path("/wallet/{wallet_id}").HandlerFunc(WalletMiddleware(GetWallet)).Methods("GET")
 
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.Path("/create").HandlerFunc(CreateUser).Methods("POST")
 	userRouter.Path("/auth").HandlerFunc(AuthUser).Methods("POST")
 
-	walletRouter := router.PathPrefix("/wallet").Subrouter()
-	walletRouter.Path("/create").HandlerFunc(IsAuthorized(CreateWallet)).Methods("POST")
-	walletRouter.Path("/{wallet_id}/delete").HandlerFunc(IsAuthorized(DeleteWallet)).Methods("DELETE")
-	walletRouter.Path("/{wallet_id}/rename").HandlerFunc(IsAuthorized(RenameWallet)).Methods("PUT")
-	walletRouter.Path("/{wallet_id}/receive").Queries("network", "{network}").HandlerFunc(WalletMiddleware(Receive)).Methods("GET")
+	walletRouter := router.PathPrefix("/wallet/{wallet_id}").Subrouter()
+	walletRouter.Path("/delete").HandlerFunc(IsAuthorized(DeleteWallet)).Methods("DELETE")
+	walletRouter.Path("/rename").HandlerFunc(IsAuthorized(RenameWallet)).Methods("PUT")
+	walletRouter.Path("/receive").Queries("network", "{network}").HandlerFunc(WalletMiddleware(Receive)).Methods("GET")
+	walletRouter.Path("/transfer").HandlerFunc(WalletMiddleware(Transfer)).Methods("POST")
 
 	server := &http.Server{
 		Addr:         config.Config.API_HOST + ":" + config.Config.API_PORT,
