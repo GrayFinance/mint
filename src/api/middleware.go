@@ -48,7 +48,7 @@ func IsAuthorized(next http.HandlerFunc) http.HandlerFunc {
 func WalletMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		username, password, _ := r.BasicAuth()
-		if len(username) < 32 || len(password) < 32 {
+		if len(username) < 16 || len(password) < 16 {
 			utils.SendJSONError(w, 401, "Authentication token not found.")
 			return
 		}
