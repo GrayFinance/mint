@@ -32,6 +32,7 @@ func (u *User) CreateUser() (models.User, error) {
 
 	user := models.User{
 		UserID:       uuid.New().String(),
+		TagName:      "@" + u.Username,
 		Username:     u.Username,
 		Password:     string(password),
 		MasterAPIKey: utils.RandomHex(16),
