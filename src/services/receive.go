@@ -60,7 +60,7 @@ func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) 
 		Pending:     true,
 		AssetID:     "bitcoin",
 		AssetName:   "bitcoin",
-		Value:       int64(value),
+		Value:       uint64(value),
 		Description: memo,
 		HashID:      decode_invoice.Get("payment_hash").String(),
 		Invoice:     invoice.Get("payment_request").String(),
