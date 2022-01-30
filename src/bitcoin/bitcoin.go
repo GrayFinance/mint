@@ -67,7 +67,7 @@ func Start() {
 
 							payment := models.Payment{
 								Pending:   false,
-								Value:     value,
+								Value:     uint64(value),
 								AssetID:   "bitcoin",
 								AssetName: "bitcoin",
 								HashID:    txid,

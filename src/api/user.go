@@ -25,6 +25,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
+
+	wallet := services.Wallet{UserID: data.UserID}
+	if _, err := wallet.CreateWallet("default"); err != nil {
+		utils.SendJSONError(w, 500, err.Error())
+		return
+	}
 	utils.SendJSONResponse(w, map[string]string{"user_id": data.UserID})
 	return
 }

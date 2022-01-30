@@ -68,6 +68,10 @@ func RenameWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if data["label"] == "default" {
+		utils.SendJSONError(w, 500, "Wallet not possible renamed.")
+	}
+
 	wallet := services.Wallet{
 		UserID: context.Get(r, "user_id").(string),
 	}
