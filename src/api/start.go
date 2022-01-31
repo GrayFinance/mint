@@ -19,6 +19,7 @@ func Start() {
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.Path("/create").HandlerFunc(CreateUser).Methods("POST")
 	userRouter.Path("/auth").HandlerFunc(AuthUser).Methods("POST")
+	userRouter.Path("/change/password").HandlerFunc(IsAuthorized(ChangePassword)).Methods("PUT")
 
 	walletRouter := router.PathPrefix("/wallet/{wallet_id}").Subrouter()
 	walletRouter.Path("/delete").HandlerFunc(IsAuthorized(DeleteWallet)).Methods("DELETE")
