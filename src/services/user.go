@@ -105,7 +105,6 @@ func (u *User) ChangePassword() (models.User, error) {
 		return user, err
 	}
 
-	fmt.Println(user.Password, u.Password)
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.Password)); err == nil {
 		err = fmt.Errorf("It was not possible to change the password.")
 		return user, err
