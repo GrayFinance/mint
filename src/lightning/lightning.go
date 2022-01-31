@@ -24,6 +24,7 @@ func Start() {
 	sub, err := Lightning.InvoicesSubscribe()
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 
 	for {
