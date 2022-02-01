@@ -24,8 +24,12 @@ func Start() {
 	walletRouter := router.PathPrefix("/wallet/{wallet_id}").Subrouter()
 	walletRouter.Path("/delete").HandlerFunc(IsAuthorized(DeleteWallet)).Methods("DELETE")
 	walletRouter.Path("/rename").HandlerFunc(IsAuthorized(RenameWallet)).Methods("PUT")
+
 	walletRouter.Path("/receive").Queries("network", "{network}").HandlerFunc(WalletMiddleware(Receive)).Methods("GET")
 	walletRouter.Path("/transfer").HandlerFunc(WalletMiddleware(Transfer)).Methods("POST")
+
+	walletRouter.Path("/payments").Queries("offset", "{offset}").HandlerFunc(WalletMiddleware(ListPayments)).Methods("GET")
+	walletRouter.Path("/payment/{hash_id}").HandlerFunc(WalletMiddleware(GetPayment)).Methods("GET")
 
 	server := &http.Server{
 		Addr:         config.Config.API_HOST + ":" + config.Config.API_PORT,
