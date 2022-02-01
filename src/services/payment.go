@@ -13,14 +13,14 @@ type Payment struct {
 }
 
 func (p *Payment) CreatePayment(payment models.Payment) (models.Payment, error) {
-	wl := Wallet{UserID: p.UserID}
+	wallet := Wallet{UserID: p.UserID}
 
-	wallet, err := wl.GetWallet(p.WalletID)
+	get_wallet, err := wallet.GetWallet(p.WalletID)
 	if err != nil {
 		return payment, err
 	}
 
-	balance := wallet.Balance
+	balance := get_wallet.Balance
 	if (payment.Category == "withdraw") && (payment.Value+payment.Fee > balance) {
 		err := fmt.Errorf("Payment value is larger than the balance available on the Wallet.")
 		return payment, err
@@ -39,8 +39,28 @@ func (p *Payment) CreatePayment(payment models.Payment) (models.Payment, error) 
 		balance = balance + payment.Value
 	}
 
-	if storage.DB.Model(&wallet).Update("balance", balance).Error != nil {
+	if storage.DB.Model(&get_wallet).Update("balance", balance).Error != nil {
 		err := fmt.Errorf("It was not possible to update the wallet.")
+		return payment, err
+	}
+	return payment, nil
+}
+
+func (p *Payment) ListPayments(offset int) ([]models.Payment, error) {
+	var payments []models.Payment
+
+	fmt.Println(2, offset, p.UserID, p.WalletID)
+	if storage.DB.Model(models.Payment{}).Where("user_id = ? AND wallet_id = ?", p.UserID, p.WalletID).Limit(10).Offset(offset).Find(&payments).Error != nil {
+		err := fmt.Errorf("No transaction found.")
+		return payments, err
+	}
+	return payments, nil
+}
+
+func (p *Payment) GetPayment(hash_id string) (models.Payment, error) {
+	var payment models.Payment
+	if storage.DB.Model(payment).Where("hash_id = ? AND wallet_id = ? AND user_id = ?", hash_id, p.WalletID, p.UserID).First(&payment).Error != nil {
+		err := fmt.Errorf("")
 		return payment, err
 	}
 	return payment, nil
