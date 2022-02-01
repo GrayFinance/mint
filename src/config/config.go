@@ -8,7 +8,10 @@ var Config struct {
 	API_HOST string `envconfig:"API_HOST"`
 	API_PORT string `envconfig:"API_PORT"`
 
-	DATABASE string `envconfig:"DATABASE"`
+	DATABASE       string `envconfig:"DATABASE"`
+	REDIS_HOST     string `envconfig:"REDIS_HOST"`
+	REDIS_PASSWORD string `envconfig:"REDIS_PASSWORD"`
+
 	SIGN_KEY string `envconfig:"SIGN_KEY"`
 
 	BTC_HOST        string `envconfig:"BTC_HOST"`
