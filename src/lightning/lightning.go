@@ -1,6 +1,7 @@
 package lightning
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/GrayFinance/go-lnd"
@@ -33,32 +34,48 @@ func Start() {
 			log.Fatal(2, err)
 		}
 
-		invoice := gjson.ParseBytes(data)
-		if invoice.Type != gjson.JSON {
+		payload_invoice := gjson.ParseBytes(data)
+		if payload_invoice.Type != gjson.JSON {
 			continue
 		}
 
-		if invoice.Get("result").Get("settled").Bool() != false {
+		if payload_invoice.Get("result").Get("settled").Bool() == false {
+			continue
+		}
+
+		decode_invoice, err := Lightning.DecodeInvoice(payload_invoice.Get("result").Get("payment_request").String())
+		if err != nil {
+			continue
+		}
+
+		payment_hash := decode_invoice.Get("payment_hash").String()
+		get_payment, err := storage.REDIS.Get(payment_hash).Result()
+		if err != nil {
 			continue
 		}
 
 		var payment models.Payment
-		if storage.DB.Model(payment).Where("invoice = ? AND pending = true", invoice.Get("result").Get("payment_request").String()).First(&payment).Error != nil {
+		if err := json.Unmarshal([]byte(get_payment), &payment); err != nil {
 			continue
 		}
+		payment.Pending = true
 
 		var wallet models.Wallet
 		if storage.DB.Model(wallet).Where("wallet_id = ?", payment.WalletID).First(&wallet).Error != nil {
 			continue
 		}
 
-		balance := wallet.Balance + payment.Value
-		if storage.DB.Model(&payment).Update("pending", false).Error != nil {
+		if storage.DB.Create(&payment).Error != nil {
 			continue
 		}
 
+		balance := wallet.Balance + payment.Value
 		if storage.DB.Model(&wallet).Update("balance", balance).Error != nil {
 			continue
 		}
+
+		pipe := storage.REDIS.Pipeline()
+		pipe.Del(payment_hash)
+		pipe.Exec()
 	}
 }

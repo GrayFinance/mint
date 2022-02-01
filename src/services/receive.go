@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/GrayFinance/mint/src/bitcoin"
@@ -69,7 +70,13 @@ func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) 
 		UserID:      r.UserID,
 		WalletID:    r.WalletID,
 	}
-	if storage.DB.Create(&payment).Error != nil {
+
+	data, err := json.Marshal(payment)
+	if err != nil {
+		return models.Payment{}, err
+	}
+
+	if err = storage.REDIS.Set(payment.HashID, data, 0).Err(); err != nil {
 		err := fmt.Errorf("It was not possible to generate invoice.")
 		return models.Payment{}, err
 	}
