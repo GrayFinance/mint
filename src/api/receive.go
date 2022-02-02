@@ -56,5 +56,8 @@ func Receive(w http.ResponseWriter, r *http.Request) {
 			utils.SendJSONResponse(w, map[string]string{"address": address.Address})
 			return
 		}
+	} else {
+		utils.SendJSONError(w, 500, "The key permission is not read.")
+		return
 	}
 }
