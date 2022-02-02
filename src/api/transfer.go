@@ -39,5 +39,9 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		utils.SendJSONResponse(w, transfer_wallet)
+		return
+	} else {
+		utils.SendJSONError(w, 500, "The key permission is not read.")
+		return
 	}
 }
