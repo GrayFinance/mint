@@ -12,6 +12,7 @@ require (
 	github.com/GrayFinance/go-bitcoin v0.0.0-20220111182946-3a6626c53289 // indirect
 	github.com/GrayFinance/go-lnd v0.0.0-20220126191245-9e6d021f650f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
