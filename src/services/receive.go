@@ -46,8 +46,8 @@ func (r *Receive) GetAddress(network string) (models.Address, error) {
 	return address, nil
 }
 
-func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) {
-	invoice, err := lightning.Lightning.CreateInvoice(value, memo)
+func (r *Receive) CreateInvoice(value uint64, memo string) (models.Payment, error) {
+	invoice, err := lightning.Lightning.CreateInvoice(int(value), memo)
 	if err != nil {
 		return models.Payment{}, nil
 	}
@@ -61,7 +61,7 @@ func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) 
 		Pending:     true,
 		AssetID:     "bitcoin",
 		AssetName:   "bitcoin",
-		Value:       uint64(value),
+		Value:       value,
 		Description: memo,
 		HashID:      decode_invoice.Get("payment_hash").String(),
 		Invoice:     invoice.Get("payment_request").String(),
