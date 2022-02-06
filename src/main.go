@@ -15,7 +15,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	if err := storage.Connect(config.Config.DATABASE); err != nil {
+	if err := storage.Connect(); err != nil {
 		log.Fatal(err)
 	}
 }

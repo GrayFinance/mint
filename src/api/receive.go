@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/GrayFinance/mint/src/utils"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/tidwall/gjson"
 )
 
 func Receive(w http.ResponseWriter, r *http.Request) {
@@ -27,14 +27,15 @@ func Receive(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			type params struct {
-				Value int    `json:"value"`
-				Memo  string `json:"memo"`
+			data := gjson.ParseBytes(body)
+			value := data.Get("value").Uint()
+			if value == 0 {
+				utils.SendJSONError(w, 500, "")
+				return
 			}
-			var data params
-			json.Unmarshal(body, &data)
 
-			invoice, err := receive.CreateInvoice(data.Value, data.Memo)
+			description := data.Get("description").String()
+			invoice, err := receive.CreateInvoice(value, description)
 			if err != nil {
 				utils.SendJSONError(w, 500, err.Error())
 				return
@@ -56,5 +57,8 @@ func Receive(w http.ResponseWriter, r *http.Request) {
 			utils.SendJSONResponse(w, map[string]string{"address": address.Address})
 			return
 		}
+	} else {
+		utils.SendJSONError(w, 500, "The key permission is not read.")
+		return
 	}
 }

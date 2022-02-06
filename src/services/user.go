@@ -20,8 +20,8 @@ type User struct {
 }
 
 func (u *User) CreateUser() (models.User, error) {
-	if len(u.Username) < 6 || len(u.Password) < 6 {
-		err := fmt.Errorf("Username and password must have a size of 6 character.")
+	if len(u.Password) < 6 || len(u.Password) > 16 || len(u.Username) < 3 || len(u.Username) > 16 {
+		err := fmt.Errorf("Password / Username is invalid.")
 		return models.User{}, err
 	}
 
@@ -32,6 +32,7 @@ func (u *User) CreateUser() (models.User, error) {
 
 	user := models.User{
 		UserID:       uuid.New().String(),
+		TagName:      "@" + u.Username,
 		Username:     u.Username,
 		Password:     string(password),
 		MasterAPIKey: utils.RandomHex(16),
@@ -85,4 +86,33 @@ func (u *User) AuthUser() (string, error) {
 	claim["user_id"] = user.UserID
 	claim["exp"] = time.Now().Add(time.Minute * (60 * 24)).Unix()
 	return token.SignedString([]byte(config.Config.SIGN_KEY))
+}
+
+func (u *User) ChangePassword() (models.User, error) {
+	if len(u.Password) < 6 || len(u.Password) > 16 {
+		err := fmt.Errorf("New password is invalid.")
+		return models.User{}, err
+	}
+
+	password, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	var user models.User
+	if storage.DB.Model(user).Where("user_id = ?", u.UserID).First(&user).Error != nil {
+		err := fmt.Errorf("It was not possible to find user.")
+		return user, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.Password)); err == nil {
+		err = fmt.Errorf("It was not possible to change the password.")
+		return user, err
+	}
+
+	if storage.DB.Model(&user).Update("password", string(password)).Error != nil {
+		err := fmt.Errorf("It was not possible to change the password.")
+		return user, err
+	}
+	return user, nil
 }

@@ -15,13 +15,13 @@ import (
 
 func IsAuthorized(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		username, _, _ := r.BasicAuth()
-		if username == "" {
+		token_jwt, _, _ := r.BasicAuth()
+		if token_jwt == "" {
 			utils.SendJSONError(w, 401, "Authentication token not found.")
 			return
 		}
 
-		token, err := jwt.Parse(username, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(token_jwt, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("There was an error.")
 			}
@@ -33,7 +33,7 @@ func IsAuthorized(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if token.Valid {
+		if token.Valid == true {
 			claims := token.Claims.(jwt.MapClaims)
 			context.Set(r, "user_id", claims["user_id"])
 			next.ServeHTTP(w, r)
@@ -47,15 +47,14 @@ func IsAuthorized(next http.HandlerFunc) http.HandlerFunc {
 
 func WalletMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		username, password, _ := r.BasicAuth()
-		if len(username) < 32 || len(password) < 32 {
+		master_api_key, wallet_key, _ := r.BasicAuth()
+		if len(master_api_key) < 16 || len(wallet_key) < 16 {
 			utils.SendJSONError(w, 401, "Authentication token not found.")
 			return
 		}
 
 		var user models.User
-
-		if storage.DB.Model(user).Where("master_api_key = ?", username).First(&user).Error != nil {
+		if storage.DB.Model(user).Where("master_api_key = ?", master_api_key).First(&user).Error != nil {
 			utils.SendJSONError(w, 401, "Master key is invalid.")
 			return
 		}
@@ -67,11 +66,11 @@ func WalletMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		permission := ""
-		if wallet.WalletAdminKey == password {
+		if wallet.WalletAdminKey == wallet_key {
 			permission = "admin"
 		}
 
-		if wallet.WalletReadKey == password {
+		if wallet.WalletReadKey == wallet_key {
 			permission = "read"
 		}
 

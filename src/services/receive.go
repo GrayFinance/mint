@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/GrayFinance/mint/src/bitcoin"
@@ -45,8 +46,8 @@ func (r *Receive) GetAddress(network string) (models.Address, error) {
 	return address, nil
 }
 
-func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) {
-	invoice, err := lightning.Lightning.CreateInvoice(value, memo)
+func (r *Receive) CreateInvoice(value uint64, memo string) (models.Payment, error) {
+	invoice, err := lightning.Lightning.CreateInvoice(int(value), memo)
 	if err != nil {
 		return models.Payment{}, nil
 	}
@@ -60,7 +61,7 @@ func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) 
 		Pending:     true,
 		AssetID:     "bitcoin",
 		AssetName:   "bitcoin",
-		Value:       int64(value),
+		Value:       value,
 		Description: memo,
 		HashID:      decode_invoice.Get("payment_hash").String(),
 		Invoice:     invoice.Get("payment_request").String(),
@@ -69,7 +70,13 @@ func (r *Receive) CreateInvoice(value int, memo string) (models.Payment, error) 
 		UserID:      r.UserID,
 		WalletID:    r.WalletID,
 	}
-	if storage.DB.Create(&payment).Error != nil {
+
+	data, err := json.Marshal(payment)
+	if err != nil {
+		return models.Payment{}, err
+	}
+
+	if err = storage.REDIS.Set(payment.HashID, data, 0).Err(); err != nil {
 		err := fmt.Errorf("It was not possible to generate invoice.")
 		return models.Payment{}, err
 	}

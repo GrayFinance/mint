@@ -25,6 +25,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
+
+	wallet := services.Wallet{UserID: data.UserID}
+	if _, err := wallet.CreateWallet("default"); err != nil {
+		utils.SendJSONError(w, 500, err.Error())
+		return
+	}
 	utils.SendJSONResponse(w, map[string]string{"user_id": data.UserID})
 	return
 }
@@ -61,5 +67,26 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.SendJSONResponse(w, data)
+	return
+}
+
+func ChangePassword(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		utils.SendJSONError(w, 500, err.Error())
+		return
+	}
+
+	var user services.User
+	json.Unmarshal(body, &user)
+
+	user.UserID = context.Get(r, "user_id").(string)
+	data, err := user.ChangePassword()
+	if err != nil {
+		utils.SendJSONError(w, 500, err.Error())
+		return
+	}
+
+	utils.SendJSONResponse(w, map[string]string{"user_id": data.UserID})
 	return
 }
