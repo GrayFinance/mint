@@ -27,6 +27,7 @@ func Start() {
 
 	walletRouter.Path("/receive").Queries("network", "{network}").HandlerFunc(WalletMiddleware(Receive)).Methods("GET")
 	walletRouter.Path("/transfer").HandlerFunc(WalletMiddleware(Transfer)).Methods("POST")
+	walletRouter.Path("/withdraw/{network}").HandlerFunc(WalletMiddleware(Withdraw)).Methods("POST")
 
 	walletRouter.Path("/payments").Queries("offset", "{offset}").HandlerFunc(WalletMiddleware(ListPayments)).Methods("GET")
 	walletRouter.Path("/payment/{hash_id}").HandlerFunc(WalletMiddleware(GetPayment)).Methods("GET")
