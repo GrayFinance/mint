@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/GrayFinance/go-bitcoin v0.0.0-20220111182946-3a6626c53289 // indirect
+	github.com/GrayFinance/go-bitcoin v0.0.0-20220205211529-fc951e0a9051 // indirect
 	github.com/GrayFinance/go-lnd v0.0.0-20220126191245-9e6d021f650f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-redis/redis v6.15.9+incompatible // indirect
@@ -29,7 +29,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/pebbe/zmq4 v1.2.7 // indirect
-	github.com/tidwall/gjson v1.13.0 // indirect
+	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
