@@ -12,6 +12,7 @@ import (
 
 type Receive struct {
 	UserID   string
+	UserTag  string
 	WalletID string
 }
 
@@ -46,15 +47,17 @@ func (r *Receive) GetAddress(network string) (models.Address, error) {
 	return address, nil
 }
 
-func (r *Receive) CreateInvoice(value uint64, memo string) (models.Payment, error) {
-	invoice, err := lightning.Lightning.CreateInvoice(int(value), memo)
+func (r *Receive) CreateInvoice(value int64, description string) (models.Payment, error) {
+	invoice, err := lightning.Lightning.CreateInvoice(int(value), description)
 	if err != nil {
-		return models.Payment{}, nil
+		err := fmt.Errorf("It was not possible to generate invoice.")
+		return models.Payment{}, err
 	}
 
 	decode_invoice, err := lightning.Lightning.DecodeInvoice(invoice.Get("payment_request").String())
 	if err != nil {
-		return models.Payment{}, nil
+		err := fmt.Errorf("It was not possible decode invoice.")
+		return models.Payment{}, err
 	}
 
 	payment := models.Payment{
@@ -62,13 +65,29 @@ func (r *Receive) CreateInvoice(value uint64, memo string) (models.Payment, erro
 		AssetID:     "bitcoin",
 		AssetName:   "bitcoin",
 		Value:       value,
-		Description: memo,
+		Description: description,
 		HashID:      decode_invoice.Get("payment_hash").String(),
 		Invoice:     invoice.Get("payment_request").String(),
 		Category:    "deposit",
 		Network:     "lightning",
-		UserID:      r.UserID,
-		WalletID:    r.WalletID,
+	}
+	if r.UserID != "" && r.WalletID != "" {
+		payment.UserID = r.UserID
+		payment.WalletID = r.WalletID
+	} else {
+		var user models.User
+		if storage.DB.Model(user).Where("user_tag = ?", r.UserTag).First(&user).Error != nil {
+			err := fmt.Errorf("Not found user.")
+			return models.Payment{}, err
+		}
+
+		var wallet models.Wallet
+		if storage.DB.Model(wallet).Where("label = ? AND user_id = ?", "default", user.UserID).First(&wallet).Error != nil {
+			err := fmt.Errorf("Not found wallet.")
+			return models.Payment{}, err
+		}
+		payment.UserID = wallet.UserID
+		payment.WalletID = wallet.WalletID
 	}
 
 	data, err := json.Marshal(payment)
