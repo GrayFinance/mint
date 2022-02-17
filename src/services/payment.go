@@ -49,7 +49,6 @@ func (p *Payment) CreatePayment(payment models.Payment) (models.Payment, error) 
 func (p *Payment) ListPayments(offset int) ([]models.Payment, error) {
 	var payments []models.Payment
 
-	fmt.Println(2, offset, p.UserID, p.WalletID)
 	if storage.DB.Model(models.Payment{}).Where("user_id = ? AND wallet_id = ?", p.UserID, p.WalletID).Limit(10).Offset(offset).Find(&payments).Error != nil {
 		err := fmt.Errorf("No transaction found.")
 		return payments, err
@@ -60,7 +59,7 @@ func (p *Payment) ListPayments(offset int) ([]models.Payment, error) {
 func (p *Payment) GetPayment(hash_id string) (models.Payment, error) {
 	var payment models.Payment
 	if storage.DB.Model(payment).Where("hash_id = ? AND wallet_id = ? AND user_id = ?", hash_id, p.WalletID, p.UserID).First(&payment).Error != nil {
-		err := fmt.Errorf("")
+		err := fmt.Errorf("No transaction found.")
 		return payment, err
 	}
 	return payment, nil

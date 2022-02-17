@@ -11,7 +11,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func Transfer(w http.ResponseWriter, r *http.Request) {
+func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	permission := context.Get(r, "permission").(string)
 	if permission == "admin" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -19,36 +19,27 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 			utils.SendJSONError(w, 500, err.Error())
 			return
 		}
-
 		data := gjson.ParseBytes(body)
 
-		destination := data.Get("destination").String()
-		if destination == "" {
-			utils.SendJSONError(w, 500, "")
+		invoice := data.Get("invoice").String()
+		if invoice == "" {
+			utils.SendJSONError(w, 500, "Not found invoice.")
 			return
 		}
-
-		value := data.Get("value").Int()
-		if value <= 0 {
-			utils.SendJSONError(w, 500, "")
-			return
-		}
-
-		description := data.Get("description").String()
 
 		wallet := services.Wallet{
 			UserID: context.Get(r, "user_id").(string),
 		}
 
-		transfer_wallet, err := wallet.Transfer(mux.Vars(r)["wallet_id"], destination, value, description)
+		payinvoice, err := wallet.PayInvoice(mux.Vars(r)["wallet_id"], invoice)
 		if err != nil {
 			utils.SendJSONError(w, 500, err.Error())
 			return
 		}
-		utils.SendJSONResponse(w, transfer_wallet)
+		utils.SendJSONResponse(w, payinvoice)
 		return
 	} else {
-		utils.SendJSONError(w, 500, "The key permission is not read.")
+		utils.SendJSONError(w, 500, "The key permission is not admin.")
 		return
 	}
 }
