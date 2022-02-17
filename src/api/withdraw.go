@@ -27,7 +27,7 @@ func Withdraw(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		value := data.Get("value").Uint()
+		value := data.Get("value").Int()
 		if value == 0 {
 			utils.SendJSONError(w, 500, "Value not found.")
 			return
@@ -37,7 +37,7 @@ func Withdraw(w http.ResponseWriter, r *http.Request) {
 			utils.SendJSONError(w, 500, "Value is less than 10,000 satoshi.")
 		}
 
-		feerate := data.Get("feerate").Uint()
+		feerate := data.Get("feerate").Int()
 		if feerate == 0 {
 			utils.SendJSONError(w, 500, "Feerate not found")
 			return
