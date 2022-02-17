@@ -9,6 +9,7 @@ import (
 	"github.com/GrayFinance/mint/src/utils"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/tidwall/gjson"
 )
 
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
@@ -18,20 +19,23 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var params map[string]string
-	json.Unmarshal(body, &params)
+	label := gjson.ParseBytes(body).Get("label").String()
+	if label == "" {
+		utils.SendJSONError(w, 500, "Wallet label not found.")
+		return
+	}
 
 	wallet := services.Wallet{
 		UserID: context.Get(r, "user_id").(string),
 	}
 
-	data, err := wallet.CreateWallet(params["label"])
+	create_wallet, err := wallet.CreateWallet(label)
 	if err != nil {
 		utils.SendJSONError(w, 500, err.Error())
 		return
 	}
 
-	utils.SendJSONResponse(w, data)
+	utils.SendJSONResponse(w, create_wallet)
 	return
 }
 
