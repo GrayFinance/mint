@@ -6,7 +6,7 @@ type User struct {
 	gorm.Model
 
 	UserID       string `gorm:"not null;unique" json:"user_id"`
-	TagName      string `gorm:"not null;unique" json:"tag_name"`
+	Usertag      string `gorm:"not null;unique" json:"user_tag"`
 	Username     string `gorm:"not null;unique" json:"username"`
 	Password     string `gorm:"not null" json:"password"`
 	MasterAPIKey string `gorm:"not null;unique" json:"master_api_key"`
@@ -17,7 +17,7 @@ type Wallet struct {
 
 	UserID         string `gorm:"index;not null" json:"user_id"`
 	Label          string `gorm:"not null" json:"label"`
-	Balance        uint64 `gorm:"default 0" json:"balance"`
+	Balance        int64  `gorm:"default 0" json:"balance"`
 	WalletID       string `gorm:"not null" json:"wallet_id"`
 	WalletReadKey  string `gorm:"not null" json:"wallet_read_key"`
 	WalletAdminKey string `gorm:"not null" json:"wallet_admin_key"`
@@ -38,8 +38,8 @@ type Payment struct {
 	Pending     bool   `gorm:"not null;default true" json:"pending"`
 	AssetID     string `gorm:"not null" json:"asset_id"`
 	AssetName   string `gorm:"not null;default bitcoin" json:"asset_name"`
-	Value       uint64 `gorm:"not null" json:"value"`
-	Fee         uint64 `gorm:"not null;default 0" json:"fee"`
+	Value       int64  `gorm:"not null" json:"value"`
+	Fee         int64  `gorm:"not null;default 0" json:"fee"`
 	Description string `json:"description"`
 	HashID      string `gorm:"not null" json:"hash_id"`
 	Preimage    string `json:"preimage"`
