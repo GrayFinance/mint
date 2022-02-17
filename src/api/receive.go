@@ -28,8 +28,8 @@ func Receive(w http.ResponseWriter, r *http.Request) {
 			}
 
 			data := gjson.ParseBytes(body)
-			value := data.Get("value").Uint()
-			if value == 0 {
+			value := data.Get("value").Int()
+			if value <= 0 {
 				utils.SendJSONError(w, 500, "")
 				return
 			}
