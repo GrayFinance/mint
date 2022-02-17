@@ -52,11 +52,10 @@ func Start() {
 
 			if tx.Get("confirmations").Int() >= 1 {
 				detail := tx.Get("details").Array()[0]
-				amount := uint64(detail.Get("amount").Float() * math.Pow(10, 8))
+				amount := int64(math.Abs(tx.Get("amount").Float() * math.Pow(10, 8)))
 				if amount < 10_000 {
 					continue
 				}
-
 				category := detail.Get("category").String()
 				if category == "receive" {
 					var address models.Address
