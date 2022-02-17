@@ -3,8 +3,9 @@ package services
 import (
 	"fmt"
 	"math"
-
+	"github.com/tidwall/gjson"
 	"github.com/GrayFinance/mint/src/bitcoin"
+	"github.com/GrayFinance/mint/src/lightning"
 	"github.com/GrayFinance/mint/src/models"
 	"github.com/GrayFinance/mint/src/storage"
 	"github.com/GrayFinance/mint/src/utils"
@@ -92,7 +93,7 @@ func (w *Wallet) ListWallets() ([]models.Wallet, error) {
 	return wallets, nil
 }
 
-func (w *Wallet) Transfer(wallet_id string, destination string, value uint64, description string) (models.Payment, error) {
+func (w *Wallet) Transfer(wallet_id string, destination string, value int64, description string) (models.Payment, error) {
 	var (
 		wallet  models.Wallet
 		payment models.Payment
@@ -102,7 +103,7 @@ func (w *Wallet) Transfer(wallet_id string, destination string, value uint64, de
 		return payment, err
 	}
 
-	if value == 0 {
+	if value <= 0 {
 		err := fmt.Errorf("Value should be greater than zero to be able to transfer.")
 		return payment, err
 	}
@@ -113,7 +114,7 @@ func (w *Wallet) Transfer(wallet_id string, destination string, value uint64, de
 	}
 
 	var dest_user models.User
-	if storage.DB.Model(dest_user).Where("tag_name = ?", destination).First(&dest_user).Error != nil {
+	if storage.DB.Model(dest_user).Where("user_tag = ?", destination).First(&dest_user).Error != nil {
 		err := fmt.Errorf("Tag name not found.")
 		return payment, err
 	}
@@ -161,7 +162,7 @@ func (w *Wallet) Transfer(wallet_id string, destination string, value uint64, de
 	return payment, nil
 }
 
-func (w *Wallet) BitcoinWithdraw(wallet_id string, address string, value uint64, feerate uint64, description string) (models.Payment, error) {
+func (w *Wallet) BitcoinWithdraw(wallet_id string, address string, value int64, feerate int64, description string) (models.Payment, error) {
 	var wallet models.Wallet
 	if storage.DB.Model(wallet).Where("wallet_id = ? AND user_id = ?", wallet_id, w.UserID).First(&wallet).Error != nil {
 		err := fmt.Errorf("Wallet not found.")
@@ -170,6 +171,11 @@ func (w *Wallet) BitcoinWithdraw(wallet_id string, address string, value uint64,
 
 	if value >= wallet.Balance {
 		err := fmt.Errorf("Value is greater or equal to the wallet balance.")
+		return models.Payment{}, err
+	}
+
+	if value <= 0 {
+		err := fmt.Errorf("Value can not be 0.")
 		return models.Payment{}, err
 	}
 
@@ -210,14 +216,14 @@ func (w *Wallet) BitcoinWithdraw(wallet_id string, address string, value uint64,
 		return models.Payment{}, err
 	}
 
-	total_value := uint64(tx.Get("fee").Float()*math.Pow(10, 8)) + value
+	total_value := int64(math.Abs(tx.Get("fee").Float()*math.Pow(10, 8))) + value
 	if total_value > wallet.Balance {
 		err := fmt.Errorf("Value is greater than the funds available in your wallet.")
 		return models.Payment{}, err
 	}
 
 	get_all_balance, err := bitcoin.Bitcoin.GetBalance()
-	if err != nil || uint64(get_all_balance.Float()*math.Pow(10, 8)) < total_value {
+	if err != nil || int64(get_all_balance.Float()*math.Pow(10, 8)) < total_value {
 		err := fmt.Errorf("Your transaction was not processed as there is no onchain liquidity from our service at the moment. Please wait until later.")
 		return models.Payment{}, err
 	}
@@ -263,4 +269,108 @@ func (w *Wallet) BitcoinWithdraw(wallet_id string, address string, value uint64,
 		return payment, err
 	}
 	return payment, nil
+}
+
+func (w *Wallet) PayInvoice(wallet_id string, invoice string) (models.Payment, error) {
+	var wallet models.Wallet
+	if storage.DB.Model(wallet).Where("wallet_id = ? AND user_id = ?", wallet_id, w.UserID).First(&wallet).Error != nil {
+		err := fmt.Errorf("Wallet not found.")
+		return models.Payment{}, err
+	}
+
+	decode_invoice, err := lightning.Lightning.DecodeInvoice(invoice)
+	if err != nil {
+		err := fmt.Errorf("Unable to decode invoice.")
+		return models.Payment{}, err
+	}
+
+	value := decode_invoice.Get("num_satoshis").Int()
+	if value >= wallet.Balance {
+		err := fmt.Errorf("Value is greater or equal to the wallet balance.")
+		return models.Payment{}, err
+	}
+
+	if value <= 0 {
+		err := fmt.Errorf("Value can not be 0.")
+		return models.Payment{}, err
+	}
+
+	limit_fee_sat := int64(float64(value) / 100 * 1.5)
+	if limit_fee_sat > 10_000 {
+		err := fmt.Errorf("Transaction fee cannot exceed 10,000 sat.")
+		return models.Payment{}, err
+	}
+
+	if limit_fee_sat < 1 {
+		limit_fee_sat = 1
+	}
+
+	if (limit_fee_sat + value) > wallet.Balance {
+		err := fmt.Errorf("Value + Fee is greater than the balance wallet.")
+		return models.Payment{}, err
+	}
+
+	payment := models.Payment{
+		Pending:     true,
+		AssetID:     "bitcoin",
+		AssetName:   "bitcoin",
+		Value:       value,
+		Fee:         limit_fee_sat,
+		Description: decode_invoice.Get("description").String(),
+		HashID:      decode_invoice.Get("payment_hash").String(),
+		Invoice:     invoice,
+		Category:    "withdraw",
+		Network:     "lightning",
+		UserID:      wallet.UserID,
+		WalletID:    wallet.WalletID,
+	}
+	if storage.DB.Create(&payment).Error != nil {
+		err := fmt.Errorf("Unable to create transaction.")
+		return models.Payment{}, err
+	}
+
+	pay_invoice_stream, err := lightning.Lightning.PayInvoice(invoice, limit_fee_sat)
+	if err != nil {
+		err := fmt.Errorf("Unable to make payment.")
+		return models.Payment{}, err
+	}
+
+	for {
+        data, err := pay_invoice_stream.ReadBytes('\n')
+        if err != nil {
+ 			err := fmt.Errorf("Unable to make payment.")
+			return models.Payment{}, err
+        }
+
+        pay_invoice := gjson.ParseBytes(data).Get("result")
+        ln_status := pay_invoice.Get("status").String()
+        if ln_status == "IN_FLIGHT" {
+        	continue
+        }
+       	
+       	if ln_status == "FAILED" {
+       		err := fmt.Errorf("Unable to make payment.")
+			return models.Payment{}, err
+		}
+
+		if ln_status != "SUCCEEDED" {
+			err := fmt.Errorf("Unable to make payment.")
+			return models.Payment{}, err
+		}
+
+		payment.Pending = false
+		payment.Fee = pay_invoice.Get("fee_sat").Int()
+		if storage.DB.Save(&payment).Error != nil {
+			err := fmt.Errorf("Unable to update payment.")
+			return models.Payment{}, err
+		}
+
+		total_value := payment.Value + payment.Fee
+		if storage.DB.Model(&wallet).Update("balance", wallet.Balance-total_value).Error != nil {
+			err := fmt.Errorf("Unable to update wallet balance.")
+			return models.Payment{}, err
+		} else {
+			return payment, nil
+		}
+	}
 }
